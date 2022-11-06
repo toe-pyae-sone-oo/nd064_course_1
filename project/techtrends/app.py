@@ -4,6 +4,8 @@ from flask import Flask, jsonify, json, render_template, request, url_for, redir
 from werkzeug.exceptions import abort
 
 import threading
+import logging
+from flask.logging import default_handler
 
 lock = threading.Lock()
 total_connections = 0
@@ -50,13 +52,16 @@ def index():
 def post(post_id):
     post = get_post(post_id)
     if post is None:
-      return render_template('404.html'), 404
+        app.logger.info('Article not found!')
+        return render_template('404.html'), 404
     else:
-      return render_template('post.html', post=post)
+        app.logger.info('Article "{}" retrieved!'.format(post['title']))
+        return render_template('post.html', post=post)
 
 # Define the About Us page
 @app.route('/about')
 def about():
+    app.logger.info('About Us retrieved!')
     return render_template('about.html')
 
 # Define the post creation functionality 
@@ -74,6 +79,8 @@ def create():
                          (title, content))
             connection.commit()
             connection.close()
+
+            app.logger.info('New article "{}" is created!'.format(title))
 
             return redirect(url_for('index'))
 
@@ -101,6 +108,17 @@ def metrics():
     )
     return response
 
+class AppFormatter(logging.Formatter):
+    def format(self, record):
+        return super().format(record)
+
 # start the application on port 3111
 if __name__ == "__main__":
-   app.run(host='0.0.0.0', port='3111')
+    default_handler.setFormatter(AppFormatter(fmt='%(levelname)s:%(name)s:%(asctime)s, %(message)s', datefmt='%d/%m/%Y, %H:%M:%S'))
+    app.logger.propagate = False
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+    )
+
+    app.run(host='0.0.0.0', port='3111')
