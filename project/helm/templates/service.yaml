@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-{{ toYaml .Values.labels | indent 6 }}
+    app: techtrends
   name: techtrends
   namespace: {{ .Values.namespace.name }}
 spec:
@@ -12,4 +12,4 @@ spec:
     targetPort: {{ .Values.service.targetPort }}
   type: {{ .Values.service.type }}
   selector:
-{{ toYaml .Values.labels | indent 6 }}
+    app: techtrends
