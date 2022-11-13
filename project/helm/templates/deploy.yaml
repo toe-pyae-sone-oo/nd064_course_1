@@ -22,7 +22,7 @@ spec:
         resources:
 {{ toYaml .Values.resources | indent 12 }}
         ports:
-        - containerPort: 
+        - containerPort: {{ .Values.containerPort }}
           protocol: {{ .Values.service.protocol }}
         livenessProbe:
           httpGet:
