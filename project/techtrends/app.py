@@ -5,6 +5,7 @@ from werkzeug.exceptions import abort
 
 import threading
 import logging
+import sys
 from flask.logging import default_handler
 
 lock = threading.Lock()
@@ -114,8 +115,21 @@ class AppFormatter(logging.Formatter):
 
 # start the application on port 3111
 if __name__ == "__main__":
-    default_handler.setFormatter(AppFormatter(fmt='%(levelname)s:%(name)s:%(asctime)s, %(message)s', datefmt='%d/%m/%Y, %H:%M:%S'))
+    formatter = logging.Formatter(fmt='%(levelname)s:%(name)s:%(asctime)s, %(message)s', datefmt='%d/%m/%Y, %H:%M:%S')
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(formatter)
+    stdout_handler.setLevel(logging.DEBUG)
+
+    stderr_handler = logging.StreamHandler(sys.stdin)
+    stderr_handler.setFormatter(formatter)
+    stderr_handler.setLevel(logging.ERROR)
+
     app.logger.propagate = False
+
+    app.logger.removeHandler(default_handler)
+    app.logger.addHandler(stdout_handler)
+    app.logger.addHandler(stderr_handler)
 
     logging.basicConfig(
         level=logging.DEBUG,
